@@ -1,0 +1,179 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="1707124996650-1"
+               author="Dima (generated)">
+        <createSequence incrementBy="1"
+                        sequenceName="account_seq"
+                        startValue="1"/>
+    </changeSet>
+    <changeSet id="1707124996650-2"
+               author="Dima (generated)">
+        <createSequence incrementBy="1"
+                        sequenceName="email_data_seq"
+                        startValue="1"/>
+    </changeSet>
+    <changeSet id="1707124996650-3"
+               author="Dima (generated)">
+        <createSequence incrementBy="1"
+                        sequenceName="phone_data_seq"
+                        startValue="1"/>
+    </changeSet>
+    <changeSet id="1707124996650-4"
+               author="Dima (generated)">
+        <createSequence incrementBy="1"
+                        sequenceName="user_seq"
+                        startValue="1"/>
+    </changeSet>
+    <changeSet id="1707124996650-5"
+               author="Dima (generated)">
+        <createTable tableName="account">
+            <column name="id"
+                    type="bigint">
+                <constraints nullable="false"
+                             primaryKey="true"
+                             primaryKeyName="pk_account"/>
+            </column>
+            <column name="create_date"
+                    type="DATETIME"/>
+            <column name="update_date"
+                    type="DATETIME"/>
+            <column name="balance"
+                    type="DECIMAL (19,4)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id"
+                    type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="init_balance"
+                    type="DECIMAL (19,4)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1707124996650-6"
+               author="Dima (generated)">
+        <createTable tableName="email_data">
+            <column name="id"
+                    type="bigint">
+                <constraints nullable="false"
+                             primaryKey="true"
+                             primaryKeyName="pk_email_data"/>
+            </column>
+            <column name="create_date"
+                    type="DATETIME"/>
+            <column name="update_date"
+                    type="DATETIME"/>
+            <column name="user_id"
+                    type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email"
+                    type="varchar(200)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1707124996650-7"
+               author="Dima (generated)">
+        <createTable tableName="phone_data">
+            <column name="id"
+                    type="bigint">
+                <constraints nullable="false"
+                             primaryKey="true"
+                             primaryKeyName="pk_phone_data"/>
+            </column>
+            <column name="create_date"
+                    type="DATETIME"/>
+            <column name="update_date"
+                    type="DATETIME"/>
+            <column name="user_id"
+                    type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="phone"
+                    type="varchar(13)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1707124996650-8"
+               author="Dima (generated)">
+        <createTable tableName="user">
+            <column name="id"
+                    type="bigint">
+                <constraints nullable="false"
+                             primaryKey="true"
+                             primaryKeyName="pk_user"/>
+            </column>
+            <column name="create_date"
+                    type="DATETIME"/>
+            <column name="update_date"
+                    type="DATETIME"/>
+            <column name="name"
+                    type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_of_birth"
+                    type="DATE"/>
+            <column name="password"
+                    type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1707124996650-9"
+               author="Dima (generated)">
+        <addUniqueConstraint columnNames="user_id"
+                             constraintName="uc_account_user"
+                             tableName="account"/>
+    </changeSet>
+    <changeSet id="1707124996650-10"
+               author="Dima (generated)">
+        <addUniqueConstraint columnNames="phone"
+                             constraintName="uc_c0e014fe132f2dede363863f7"
+                             tableName="phone_data"/>
+    </changeSet>
+    <changeSet id="1707124996650-11"
+               author="Dima (generated)">
+        <addUniqueConstraint columnNames="email"
+                             constraintName="uc_cc0e0623cd1642eaa07da28f5"
+                             tableName="email_data"/>
+    </changeSet>
+    <changeSet id="1707124996650-12"
+               author="Dima (generated)">
+        <addUniqueConstraint columnNames="name"
+                             constraintName="uc_user_name"
+                             tableName="user"/>
+    </changeSet>
+    <changeSet id="1707124996650-13"
+               author="Dima (generated)">
+        <addForeignKeyConstraint baseColumnNames="user_id"
+                                 baseTableName="account"
+                                 constraintName="FK_ACCOUNT_ON_USER"
+                                 referencedColumnNames="id"
+                                 referencedTableName="user"/>
+    </changeSet>
+    <changeSet id="1707124996650-14"
+               author="Dima (generated)">
+        <addForeignKeyConstraint baseColumnNames="user_id"
+                                 baseTableName="email_data"
+                                 constraintName="FK_EMAIL_DATA_ON_USER"
+                                 referencedColumnNames="id"
+                                 referencedTableName="user"/>
+    </changeSet>
+    <changeSet id="1707124996650-15"
+               author="Dima (generated)">
+        <addForeignKeyConstraint baseColumnNames="user_id"
+                                 baseTableName="phone_data"
+                                 constraintName="FK_PHONE_DATA_ON_USER"
+                                 referencedColumnNames="id"
+                                 referencedTableName="user"/>
+    </changeSet>
+
+</databaseChangeLog>

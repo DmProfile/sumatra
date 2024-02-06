@@ -1,0 +1,53 @@
+server:
+  port: 8091
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/postgres?characterEncoding=UTF-8
+    username: postgres
+    password: postgres
+  application:
+    name: sumatra
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        enable_lazy_load_no_trans: false
+        default_schema: public
+    show-sql: false
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+  rabbitmq:
+    addresses: localhost
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+      simple:
+        default-requeue-rejected: false
+  liquibase:
+    change-log: "/classpath:/db/changelog/db.changelog-master.xml"
+    default-schema: public
+
+springdoc:
+  show-actuator: false
+  writer-with-order-by-keys: true
+  api-docs:
+    path: /swagger-ui
+    groups:
+      enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    org:
+      jooq:
+        tools:
+          LoggerListener=DEBUG:
+
+
+app:
+  cron: "3,*/5 * * * * *"
