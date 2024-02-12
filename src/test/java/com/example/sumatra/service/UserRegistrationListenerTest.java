@@ -5,6 +5,7 @@ import com.example.sumatra.container.RabbitTestContainer;
 import com.example.sumatra.service.request.UserRegistrationRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
@@ -58,38 +60,48 @@ class UserRegistrationListenerTest implements PostgresTestContainer, RabbitTestC
                 .userPassword("securepassword123")
                 .build();
 
-
         ObjectMapper objectMapper = new ObjectMapper();
 
         String json = objectMapper.writeValueAsString(userRegistrationRequest);
-        
+
         rabbitTemplate.convertAndSend(Q_USER_REGISTRATION, json);
 
-        await().between(Duration.ofSeconds(0), Duration.ofSeconds(15))
+        await().atMost( Duration.ofSeconds(15))
                 .until(userCreated(output), is(true));
 
+        await().atMost(10, SECONDS).until(() -> isTaskCountCorrect(output, 2), is(true));
 
         assertThat(output.getErr()).isEmpty();
-        assertThat(output.getOut()).contains(
-                "UserRegistrationRequest"
-
-        );
 
         assertThat(output.getOut()).contains(
-                "User Registration Successful"
+                        "UserRegistrationRequest"
 
-        );
+                )
+                .contains(
+                        "User Registration Successful"
 
-        assertThat(output.getOut()).contains(
-                "Scheduled task "
-        );
+                )
+                .contains(
+                        "Scheduled task "
+                );
+    }
+
+    private static boolean isTaskCountCorrect(CapturedOutput output, int taskCount) {
+        int count = 0;
+        for (String line : output.getOut().split("\n")) {
+            if (line.contains("Scheduled task stopped")) {
+                count++;
+            }
+        }
+        return count >= taskCount;
     }
 
     private Callable<Boolean> userCreated(CapturedOutput output) {
         return () -> output.getOut().contains("UserRegistrationRequest");
     }
 
-    static  {
+    @BeforeAll
+    static  void startContainers() {
         Startables.deepStart(Stream.of(RABBIT_MQ_CONTAINER, POSTGRES_CONTAINER)).join();
     }
 }

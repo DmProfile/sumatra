@@ -44,10 +44,12 @@ springdoc:
 logging:
   level:
     org:
+      springframework.web: debug
       jooq:
         tools:
-          LoggerListener=DEBUG:
+          LoggerListener: DEBUG
 
 
 app:
   cron: "3,*/5 * * * * *"
+  secret-key: "RandomKeyPhraseForAES256Encryption"

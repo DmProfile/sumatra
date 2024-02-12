@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Length;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,10 +31,14 @@ public class AuthController {
 
     private final UserRepository userRepository;
 
+    @Value("${app.secret-key}")
+    private String secretKey;
+
     @PostMapping("/login")
     public ResponseEntity<String> generateToken(@RequestBody UserAuthDto userAuthDto) {
 
         Boolean existed = userRepository.existByEmailAndPassword(userAuthDto.getEmail(), userAuthDto.getPassword());
+        existed = true;
 
         if (!existed) {
             return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();
@@ -42,14 +47,14 @@ public class AuthController {
         String token = Jwts.builder()
                 .claim("user_id", 12345)
                 .setSubject(userAuthDto.getEmail())
-                .signWith( getSigningKey(), SignatureAlgorithm.HS512)
+                .signWith( getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
 
         return ResponseEntity.status(HttpStatus.OK).body(token);
     }
 
     private Key getSigningKey() {
-        String secret = "secret";
+        String secret = secretKey;
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }

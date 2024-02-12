@@ -3,6 +3,7 @@ package com.example.sumatra.controller;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -36,12 +37,12 @@ import static com.example.sumatra.Tables.USER;
 @RequestMapping(value = "/api/v1", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 @Tag(name = "Работа с пользователями", description = "API для работы с пользователями")
-public class ApiController{
+public class ApiController {
 
     private final DSLContext dslContext;
 
     @GetMapping("/users/feed/")
-    public ResponseEntity<List<UserDetailsDto>> userScrollingFeed(@RequestParam UserSearchRequestDto requestDto,
+    public ResponseEntity<List<UserDetailsDto>> userScrollingFeed(UserSearchRequestDto requestDto,
                                                                   @RequestParam Long lastSeenId,
                                                                   @RequestParam Integer limit) {
         Condition condition = buildCondition(requestDto);
@@ -87,7 +88,6 @@ public class ApiController{
         return "user";
     }
 
-
     @PostMapping("/users/{id}/mail")
     public ResponseEntity<Long> addMail(@PathVariable Long id, @RequestBody String email) {
         return null;
@@ -100,29 +100,24 @@ public class ApiController{
 
     private Condition buildCondition(UserSearchRequestDto requestDto) {
         return Stream.<Supplier<Optional<Condition>>>of(
-                        () -> requestDto.getEmailAddress().map(emailAddress -> EMAIL_DATA.EMAIL.eq(emailAddress.getValue())),
-                        () -> requestDto.getUserName().map(userName -> USER.NAME.like(userName.getValue())),
-                        () -> requestDto.getPhoneNumber().map(phoneNumber -> PHONE_DATA.PHONE.eq(phoneNumber.getValue())),
-                        () -> requestDto.getDateOfBirth().map(dateOfBirth -> USER.DATE_OF_BIRTH.gt(LocalDate.parse(dateOfBirth.getValue())))
+                        () -> requestDto.getEmailAddress().map(emailAddress -> EMAIL_DATA.EMAIL.eq(emailAddress)),
+                        () -> requestDto.getUserName().map(userName -> USER.NAME.like(userName)),
+                        () -> requestDto.getPhoneNumber().map(phoneNumber -> PHONE_DATA.PHONE.eq(phoneNumber)),
+                        () -> requestDto.getDateOfBirth().map(dateOfBirth -> USER.DATE_OF_BIRTH.gt(LocalDate.parse(dateOfBirth)))
                 )
                 .map(Supplier::get)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .reduce(DSL.trueCondition(), Condition::and);
     }
-
-    @Schema(description = "Поиск пользователя по параметрам")
     @Data
+    @NoArgsConstructor
     public static class UserSearchRequestDto {
-        @Schema(description = "Дата рождения")
-        private Optional<DateOfBirth> dateOfBirth;
-        @Schema(description = "Номер телефона")
-        private Optional<PhoneNumber> phoneNumber;
-        @Schema(description = "Имя пользователя")
-        private Optional<UserName> userName;
-        @Schema(description = "Адрес электронной почты")
-        private Optional<EmailAddress> emailAddress;
-        
+
+        private Optional<String> dateOfBirth = Optional.empty();
+        private Optional<String> phoneNumber = Optional.empty();
+        private Optional<String> userName = Optional.empty();
+        private Optional<String> emailAddress = Optional.empty();
 
     }
 

@@ -1,6 +1,7 @@
 package com.example.sumatra.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import static com.example.sumatra.Tables.ACCOUNT;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class AccountService {
 
     private static final BigDecimal multiplier = BigDecimal.valueOf(207).divide(BigDecimal.valueOf(110), 2, RoundingMode.HALF_UP);
@@ -31,6 +33,11 @@ public class AccountService {
                             ))
                             .forUpdate()
                             .fetchInto(long.class);
+
+                    if (fetched.isEmpty()) {
+                        log.info("No accounts to update");
+                        return;
+                    }
 
                     dslContext.update(ACCOUNT)
                             .set(ACCOUNT.BALANCE, ACCOUNT.BALANCE.add(ACCOUNT.BALANCE.mul(adder)))

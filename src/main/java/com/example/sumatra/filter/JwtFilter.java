@@ -3,6 +3,7 @@ package com.example.sumatra.filter;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -12,11 +13,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+@RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
-    private static final String SECRET_KEY = "secret";
+
+    private final String secretKey;
 
     private Key getSigningKey() {
-        String secret = "secret";
+        String secret = secretKey;
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
