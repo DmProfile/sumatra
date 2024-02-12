@@ -10,12 +10,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 @Component
 @RequiredArgsConstructor
 public class TransferService {
 
     private final AccountRepository accountRepository;
+    private final ConcurrentHashMap<String, Lock> transferLocks = new ConcurrentHashMap<>();
 
     @Transactional(isolation = Isolation.REPEATABLE_READ, propagation = Propagation.REQUIRED)
     public void transfer(TransferItem transferItem) {
@@ -32,18 +38,50 @@ public class TransferService {
             throw new RuntimeException("указаны неверные участники перевода");
         }
 
-        updateBalance(transferItem, transferParticipants);
-        accountRepository.saveAllAndFlush(transferParticipants);
+        Consumer<TransferItem> transferItemConsumer = transfer -> doTransfer(transfer, transferParticipants);
+
+        transferWithLock(transferItem, transferItemConsumer);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.SERIALIZABLE)
     public void updateAccounts(TransferItem transferItem) {
-        accountRepository.transferMoneyBetweenUsers(transferItem.userFrom(), transferItem.userTo(), transferItem.amount());
+        Consumer<TransferItem> transferItemConsumer = transfer -> accountRepository.transferMoneyBetweenUsers(transfer.userFrom(), transfer.userTo(), transfer.amount());
+        transferWithLock(transferItem, transferItemConsumer);
     }
 
     @Transactional
     public void doTransfer(TransferItem transferItem) {
-        accountRepository.transferMoneyBetweenUsersWithAdvisoryLock(transferItem.userFrom(), transferItem.userTo(), transferItem.amount());
+        Consumer<TransferItem> transferItemConsumer = transfer -> accountRepository.transferMoneyBetweenUsersWithAdvisoryLock(transfer.userFrom(), transfer.userTo(), transfer.amount());
+        transferWithLock(transferItem, transferItemConsumer);
+    }
+
+    private void doTransfer(TransferItem transfer, List<AccountEntity> transferParticipants) {
+        updateBalance(transfer, transferParticipants);
+        accountRepository.saveAllAndFlush(transferParticipants);
+    }
+
+    private void transferWithLock(TransferItem transferItem, Consumer<TransferItem> transferItemConsumer) {
+        String lockKey = getLockKey(transferItem.userFrom(), transferItem.userTo());
+        Lock transferLock = transferLocks.computeIfAbsent(lockKey, k -> new ReentrantLock());
+
+        boolean lockAcquired = false;
+
+        try {
+            lockAcquired = transferLock.tryLock(5, TimeUnit.SECONDS);
+            if (lockAcquired) {
+                transferItemConsumer.accept(transferItem);
+            } else {
+                throw new RuntimeException("Время ожидания операции перевода истекло");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Операция перевода прервана");
+        } finally {
+            if (lockAcquired) {
+                transferLock.unlock();
+                transferLocks.remove(lockKey);
+            }
+        }
     }
 
     private void updateBalance(TransferItem transferItem, List<AccountEntity> transferParticipants) {
@@ -54,12 +92,16 @@ public class TransferService {
             throw new RuntimeException("Недостаточно средств на счете");
         }
 
-        balance = balance.subtract(transferItem.amount());
-        accountFrom.setBalance(balance);
+        BigDecimal subtract = balance.subtract(transferItem.amount());
+        accountFrom.setBalance(subtract);
 
         AccountEntity accountTo = transferParticipants.get(1);
-        balance = accountTo.getBalance();
-        balance = balance.add(transferItem.amount());
-        accountTo.setBalance(balance);
+        BigDecimal accountToBalance = accountTo.getBalance();
+        BigDecimal added = accountToBalance.add(transferItem.amount());
+        accountTo.setBalance(added);
+    }
+
+    private String getLockKey(long userFrom, long userTo) {
+        return Math.min(userFrom, userTo) + "-" + Math.max(userFrom, userTo);
     }
 }

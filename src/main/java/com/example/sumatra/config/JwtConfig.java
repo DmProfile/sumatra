@@ -18,7 +18,6 @@ public class JwtConfig {
         FilterRegistrationBean<JwtFilter> filterRegistrationBean = new FilterRegistrationBean<>();
         filterRegistrationBean.setFilter(new JwtFilter(secretKey));
         filterRegistrationBean.addUrlPatterns("/api/v1/users/*"); // Define the URL pattern for which the filter should be applied
-        filterRegistrationBean.addUrlPatterns("/api/v1/users/*"); // Define the URL pattern for which the filter should be applied
         return filterRegistrationBean;
     }
 }
