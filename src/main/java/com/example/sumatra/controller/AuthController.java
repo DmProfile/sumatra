@@ -45,7 +45,7 @@ public class AuthController {
         }
 
         String token = Jwts.builder()
-                .claim("user_id", 12345)
+                .claim("user_id", 12345L)
                 .setSubject(userAuthDto.getEmail())
                 .signWith( getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();

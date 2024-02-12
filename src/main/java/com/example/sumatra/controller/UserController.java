@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.util.List;
@@ -37,7 +35,7 @@ import static com.example.sumatra.Tables.USER;
 @RequestMapping(value = "/api/v1", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 @Tag(name = "Работа с пользователями", description = "API для работы с пользователями")
-public class ApiController {
+public class UserController {
 
     private final DSLContext dslContext;
 
@@ -62,7 +60,7 @@ public class ApiController {
     }
 
     @GetMapping("/users/search/")
-    public ResponseEntity<List<UserDetailsDto>> getUsersByFilters(@RequestParam UserSearchRequestDto requestDto,
+    public ResponseEntity<List<UserDetailsDto>> getUsersByFilters(UserSearchRequestDto requestDto,
                                                                   @RequestParam @Positive Integer pageNumber,
                                                                   @RequestParam @Positive Integer limit) {
         int offset = (pageNumber - 1) * limit;
@@ -119,33 +117,6 @@ public class ApiController {
         private Optional<String> userName = Optional.empty();
         private Optional<String> emailAddress = Optional.empty();
 
-    }
-
-    @Data
-    public static class DateOfBirth {
-        @Schema(description = "Дата рождения", example = "1990-01-01")
-        @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "Дата рождения должна быть в формате YYYY-MM-DD")
-        private String value;
-    }
-
-    @Data
-    public static class PhoneNumber {
-        @Schema(description = "Номер телефона", example = "79139152356")
-        @Pattern(regexp = "^\\d{11}$", message = "Номер телефона должен состоять из 11 цифр")
-        private String value;
-    }
-
-    @Data
-    public static class UserName {
-        @Schema(description = "Имя пользователя", example = "Иван")
-        private String value;
-    }
-
-    @Data
-    public static class EmailAddress {
-        @Schema(description = "Адрес электронной почты", example = "ivan@mail.ru")
-        @Email
-        private String value;
     }
 
     @Data

@@ -16,6 +16,6 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
 
     @Operation(summary = "Find an existing contact")
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select a from AccountEntity a inner join a.user u where u.id IN (:userFrom, :userTo) order by field(u.id, :userFrom, :userTo)")
+    @Query("select a from AccountEntity a inner join a.user u where u.id IN (:userFrom, :userTo) order by case when u.id = :userFrom then 1 else 2 end, u.id")
     List<AccountEntity> findByTransferParticipants(Long userFrom, Long userTo);
 }

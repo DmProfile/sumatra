@@ -44,7 +44,18 @@ springdoc:
 logging:
   level:
     org:
-      springframework.web: debug
+      hibernate:
+        type:
+          descriptor:
+            sql:
+              BasicBinder: trace
+        SQL: debug
+      springframework:
+        web: debug
+        jdbc:
+          core:
+            StatementCreatorUtils: INFO
+            JdbcTemplate: INFO
       jooq:
         tools:
           LoggerListener: DEBUG

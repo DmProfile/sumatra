@@ -17,7 +17,14 @@ public class TransferService {
 
     @Transactional
     public void transfer(TransferItem transferItem) {
-        List<AccountEntity> transferParticipants = accountRepository.findByTransferParticipants(transferItem.userFrom(), transferItem.userTo());
+        long userFrom = transferItem.userFrom();
+        long userTo = transferItem.userTo();
+
+        if (userFrom == userTo) {
+            throw new RuntimeException("нельзя перевести на себя");
+        }
+
+        List<AccountEntity> transferParticipants = accountRepository.findByTransferParticipants(userFrom, userTo);
 
         if (transferParticipants.size() != 2) {
             throw new RuntimeException("указаны неверные участники перевода");
