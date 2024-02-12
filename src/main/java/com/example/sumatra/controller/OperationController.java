@@ -32,6 +32,21 @@ public class OperationController {
         return ResponseEntity.ok().build();
     }
 
+
+    @PostMapping(value = "/users/{id}/account/withdrawS", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> withDrawS(@PathVariable(value = "id") @Secured Long userId, @RequestBody WithDrawDto withDrawDto) {
+        TransferItem transferItem = new TransferItem(userId, withDrawDto.targetUserId, withDrawDto.amount);
+        transferService.updateAccounts(transferItem);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(value = "/users/{id}/account/withdrawI", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> withDrawI(@PathVariable(value = "id") @Secured Long userId, @RequestBody WithDrawDto withDrawDto) {
+        TransferItem transferItem = new TransferItem(userId, withDrawDto.targetUserId, withDrawDto.amount);
+        transferService.doTransfer(transferItem);
+        return ResponseEntity.ok().build();
+    }
+
     @Getter
     @Setter
     public static class WithDrawDto {
